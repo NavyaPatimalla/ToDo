@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<script language="JavaScript">
+
+function createFilter()
+{
+    var filter = document.createElement("select");
+    document.getElementById("filt").appendChild(filter);
+    var option1 = document.createElement("option");
+    option1.setAttribute('value', "all");
+    filter.appendChild(option1);
+};
+
+function trigClick(event)
+{
+   if (event.keyCode === 13) {
+    // Cancel the default action, if needed
+    event.preventDefault();
+    // Trigger the button element with a click
+    document.getElementById("create").click();
+  }
+}
+
+function onChange()
+{
+   var option = document.getElementById("select").value;
+   if (option == "all")
+      showInput();
+   else if(option == "completed")
+     showCompleted()
+   else
+     showActive();
+};
+
+function resetStatus(tableName)
+{
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+       if (this.readyState == 4 && this.status == 200)
+       {
+           showInput();
+       }
+    };
+    xhttp.open("POST", "http://localhost:8081?table=" + tableName + "&reset=true", true);
+    xhttp.send();
+}
+
+  function showInput() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+           document.getElementById("myDIV").innerHTML = ''
+       /*   var strLines = this.responseText.split('\n');
+          let body = "";
+          for (var i in strLines) {
+              var obj = JSON.parse(strLines[i]);
+              body += "<br />" + obj.name + obj.status;
+              dynamicCreate(obj.tableName, obj.name, obj.status); 
+              }*/
+
+          var tableArray = JSON.parse(this.responseText);
+          //document.getElementById("display").innerHTML =  tableArray.length;
+          for (i=0; i < tableArray.length; ++i)
+          {
+              var obj = tableArray[i];
+              //document.getElementById("display").innerHTML = obj.tableName;
+              createTable(obj.tableName);
+              //document.getElementById("display").innerHTML =  document.getElementById(obj.tableName).childNodes.length
+              for (j=0; j < obj.tasks.length; ++j)
+              {
+                  dynamicCreate(obj.tableName, obj.tasks[j].name, obj.tasks[j].status);
+              }
+          }
+      }
+    };
+  var params = '';
+  xhttp.open("GET", "http://localhost:8081?name=all", true);
+  xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhttp.send(params);
+  return true;
+};
+
+function showCompleted()
+{
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+       if (this.readyState == 4  && this.status == 200)
+       {
+            document.getElementById("myDIV").innerHTML = ''
+           var tableArray = JSON.parse(this.responseText);
+          //document.getElementById("display").innerHTML =  tableArray.length;
+          for (i=0; i < tableArray.length; ++i)
+          {   
+              var obj = tableArray[i];
+              //document.getElementById("display").innerHTML = obj.tableName;
+              createTable(obj.tableName);
+              //document.getElementById("display").innerHTML =  document.getElementById(obj.tableName).childNodes.length
+              for (j=0; j < obj.tasks.length; ++j)
+              {   
+                  dynamicCreate(obj.tableName, obj.tasks[j].name, obj.tasks[j].status);
+              }
+          }
+       }
+   };
+   var params = '';
+   xhttp.open("GET", "http://localhost:8081?name=completed", true);
+   xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+   xhttp.send(params);
+}
+
+function showActive()
+{
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+       if (this.readyState == 4  && this.status == 200)
+       {
+            document.getElementById("myDIV").innerHTML = ''
+           var tableArray = JSON.parse(this.responseText);
+          //document.getElementById("display").innerHTML =  tableArray.length;
+          for (i=0; i < tableArray.length; ++i)
+          {
+              var obj = tableArray[i];
+              //document.getElementById("display").innerHTML = obj.tableName;
+              createTable(obj.tableName);
+              //document.getElementById("display").innerHTML =  document.getElementById(obj.tableName).childNodes.length
+              for (j=0; j < obj.tasks.length; ++j)
+              {
+                  dynamicCreate(obj.tableName, obj.tasks[j].name, obj.tasks[j].status);
+              }
+          }
+       }
+   };
+   var params = '';
+   xhttp.open("GET", "http://localhost:8081?name=active", true);
+   xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+   xhttp.send(params);
+}
+
+function createTable(tableName) {
+    var newDiv = document.createElement("div");
+         newDiv.setAttribute("id", tableName);
+         newDiv.setAttribute("style", "margin-bottom:100px");
+         document.getElementById("myDIV").appendChild(newDiv);
+         
+         var text = document.createElement("h2");
+         text.setAttribute("class", "header");
+         text.innerHTML=tableName;
+         newDiv.appendChild(text);
+         
+         var img2 = document.createElement("img");
+         img2.setAttribute("src", 'delete.png');
+         img2.setAttribute("width", '25');
+         img2.addEventListener("click", function() {
+             deleteTable(tableName);
+         }); 
+         newDiv.appendChild(img2);
+         
+         var text = document.createElement("br");
+         newDiv.appendChild(text);
+         
+         var inp = document.createElement("input");
+         inp.setAttribute("type", "text");
+         inp.setAttribute("placeholder", "Create a task");
+         newDiv.appendChild(inp);
+         
+         var img = document.createElement("img");
+         img.setAttribute("src", 'plus.png');
+         img.setAttribute("width", '20');
+         img.addEventListener("click", function() {
+             addnshowNewEntry(tableName, inp.value);
+         }); 
+         inp.addEventListener("keyup", function(event) {
+      // Number 13 is the "Enter" key on the keyboard
+      if (event.keyCode === 13) {
+       // Cancel the default action, if needed
+        event.preventDefault();
+       // Trigger click
+       img.click();
+      }
+      });
+         newDiv.appendChild(img);
+         
+         var reset = document.createElement("input");
+         reset.setAttribute("type", "reset");
+         reset.setAttribute("style", "margin-left:30px");
+         reset.addEventListener("click", function()
+         {
+             resetStatus(tableName);
+         });
+         newDiv.appendChild(reset);
+
+         var tab = document.createElement("table");
+         tab.setAttribute("class", "TAB");
+         tab.setAttribute("style","text-align: left; solid #ddd;padding: 8px; border-collapse: collapse;table-layout: fixed;width: 1000px;");
+         newDiv.appendChild(tab);
+         
+         var text2 = document.createElement("br");
+         newDiv.appendChild(text);
+}
+
+
+function addNewTable() {
+     var xhttp = new XMLHttpRequest();
+     var tableName = document.getElementById('board_create').value;
+     xhttp.onreadystatechange = function()
+     {
+         if (this.readyState == 4 && this.status == 200) {
+             createTable(tableName);
+     };
+     }
+     //var params='';
+     xhttp.open("POST", "http://localhost:8081?table="+tableName, true);
+     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+     //xhttp.setRequestHeader('Access-Control-Allow-Origin', '*');
+     xhttp.send();
+}
+
+  function addnshowNewEntry(tableName, input) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200)
+    {
+        dynamicCreate(tableName, input, 'undone');
+    }
+    };
+    //var userInput = document.getElementById("task_create").value;
+    var params = '';
+    xhttp.open("POST", "http://localhost:8081?table=" + tableName + "&name=" + input, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.send(params);
+    //return true;
+  };
+
+
+  function editStatus(tableName, name, status) {
+     var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) { 
+             // Do nothing;
+          }
+      };
+    
+    var params = '';
+    xhttp.open("POST", `http://localhost:8081?table=${tableName}&name=${name}&status=${status}&edit=true`, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.send(params);
+  };
+
+  function deleteTable(tableName)
+  {
+     var xhttp = new XMLHttpRequest();
+     xhttp.onreadystatechange = function()
+     {
+         document.getElementById(tableName).remove();
+     };
+     var params = '';
+     xhttp.open('POST', "http://localhost:8081?table=" + tableName + "&delete=true", true);
+     xhttp.send(params);
+  }
+
+  function sendDelete(tableName, name)
+  {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200)
+        {
+            // Do nothing
+        }
+      };
+      var params = ''
+      xhttp.open("POST", "http://localhost:8081?table=" + tableName + "&name=" + name + "&delete=true", true);
+      xhttp.send(params);
+  }
+
+  function dynamicCreate(tableName, name, status)
+  {   
+      var table = document.getElementById(tableName).childNodes[5];
+      var row = table.insertRow(-1);
+      row.height = 100
+      var cell1 = row.insertCell(0);
+      cell1.width = 50;
+      cell1.height = 30;
+      var cell2 = row.insertCell(1);
+      cell2.style.width = 100;
+      var cell3 = row.insertCell(2);
+      cell3.style.width = 100;
+      //var cell4 = row.insertCell(3);
+      cell2.innerHTML = name + '\n';
+
+      var element = document.createElement("input");
+      element.setAttribute('type', "checkbox");
+      element.addEventListener("click", function() {
+          if (element.checked == true){
+            //cell1.innerHTML = "navya"
+            cell2.style.textDecorationLine='line-through';
+            editStatus(tableName, name, 'Done');
+            //text.style.display = "block";
+          } else {
+             editStatus(tableName, name, 'Undone');
+             cell2.style.textDecoration='None';
+            //text.style.display = "none";
+          }
+      });
+      if (status == 'Done')
+      { 
+        cell2.style.textDecorationLine='line-through';
+        //element.checked = true;
+      }
+      cell1.appendChild(element);
+
+      var delElement = document.createElement("img");
+      delElement.setAttribute("src", "del.png")
+      delElement.setAttribute("width", 10);
+      cell3.appendChild(delElement);
+
+      delElement.addEventListener("click", function() {
+               table.deleteRow(this.parentNode.parentNode.rowIndex);
+               sendDelete(tableName, name);});
+
+      /*var element = document.createElement("input");
+      element.setAttribute('type', "checkbox");
+      element.addEventListener("click", function() {
+          if (element.checked == true){
+            //cell1.innerHTML = "navya"
+            //text.style.display = "block";
+          } else {
+             editStatus(tableName, name, 'Undone');
+             cell2.style.textDecoration='None';
+            //text.style.display = "none";
+          }
+      });*/
+
+  };
+
+</script>
+
+<title>My Little Project</title>
+
+</head>
+
+<body onload="showInput();">
+<style>
+.header {
+    display: inline;
+}
+body {
+   background-color: lightgrey;
+}
+p {
+    <!--border-style: dotted-->
+}
+.Div1 {
+    border-style: groove;
+    alignItems :center;
+    margin: auto;
+  width: 60%;
+  border: 3px solid #73AD21;
+}
+.TAB {
+    width: 30%;
+    border-spacing: 5px;
+    font-size:20px;
+    font-family: "Times New Roman"
+}
+
+
+.flt:hover .sel {display: block;}
+
+</style>
+<h1 style="text-align:center;color:black;font-family:"Times New Roman"">Daily Planner</h1>
+<!--<p style="color:red;font-size:28px" title="my lil project">TODO list</p>-->
+<!--<form>
+    <label><b>Create a board </b></label>
+    <input type="text" id="user_input">
+  </form>
+  
+  <input type="submit" onclick="addNewTable();">-->
+  <input id='board_create' type="text" placeholder="Add a new board" onkeyup="trigClick(event);">
+  <img id='create' src="plus.png" width=20;  onclick="addNewTable();"/>
+  <input type="reset" style="margin-left:800px">
+<!--<div class="flt" style="margin-left:1000px">-->
+  <img id='filt' src="Filter.png" width=20; onclick="createFilter();/>
+  <div class="sel" >
+  <select name="filter" id="select" onChange="onChange();">
+   <option value="all">All </option>
+   <option value="completed">Completed </option>
+   <option value="active">Active </option>
+ </select>
+</div>
+<!--</div>-->
+  <!--<img id='create' src="delete.png" width=20;  onclick="deleteTable();"/>-->
+  <!--<input type="reset" style="margin-left:80px; onclick="resetStatus();"><br/>-->
+  <p><span id='display'></span></p>
+  <!--<button style="font-size:28px" onclick="document.getElementById('display').style.textDecorationLine='line-through'"></button>-->
+  <!-- <button style="font-size:28px" id="btnAdd"></button>-->
+<div id="myDIV"></div>
+</body>
+
+</html>
