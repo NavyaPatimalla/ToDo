@@ -1,0 +1,22 @@
+version: '3'
+services:
+ mysql:
+   image: navyapatimalla/littleproject1992:mysql
+   command: --default-authentication-plugin=mysql_native_password
+   restart: always
+   environment:
+       MYSQL_ROOT_PASSWORD: secret_password
+       MYSQL_DATABASE: dbfinal
+ todo-backend:
+   # build: './todo-backend'
+   image: navyapatimalla/littleproject1992:webserver
+   command: sh -c "
+     sleep 10 &&
+     node ./server.js"
+   ports:
+     - 8081:8081
+ todo-frontend:
+   # build: './todo-frontend'
+   image: navyapatimalla/littleproject1992:frontend
+   ports: 
+      - 8085:80
